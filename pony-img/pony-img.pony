@@ -15,6 +15,8 @@ use @pony_img_read[U8](img: PonyImageRaw, x: U32, y: U32, channel: U32)
 use @pony_img_get_rgb[U32](img: PonyImageRaw, x: U32, y: U32)
 use @pony_img_get_rgba[U32](img: PonyImageRaw, x: U32, y: U32)
 
+use @pony_img_write_png[Bool](uri: Pointer[U8 val] tag, img: PonyImageRaw, compression: U8)
+
 primitive _PonyImageRaw
 type PonyImageRaw is Pointer[_PonyImageRaw ref] val
 
@@ -176,19 +178,12 @@ class Image
   fun get_pixel_rgba(x: U32, y: U32): (U8, U8, U8, U8, Bool) =>
     if (channels == 3) or (channels == 4) then
       try
-        let r = _data((
-          ((x + (y * width)) * channels)
-        ).usize())?
-        let g = _data((
-          ((x + (y * width)) * channels) + 1
-        ).usize())?
-        let b = _data((
-          ((x + (y * width)) * channels) + 2
-        ).usize())?
+        let offset = ((x + (y * width)) * channels).usize()
+        let r = _data(offset)?
+        let g = _data(offset + 1)?
+        let b = _data(offset + 2)?
         let a = if channels == 3 then 255 else
-          _data((
-            ((x + (y * width)) * channels) + 3
-          ).usize())?
+          _data(offset + 3)?
         end
         (r, g, b, a, true)
       else
@@ -208,6 +203,68 @@ class Image
     let c = @pony_img_get_rgba(_raw, x, y)
 
     ((c % 256).u8(), ((c >> 8) % 256).u8(), ((c >> 16) % 256).u8(), ((c >> 24) % 256).u8())
+
+
+  fun ref set_pixel(x: U32, y: U32, color: (U8 | (U8, U8, U8)), a: U8 = 255): Bool =>
+    let offset = ((x + (y * width)) * channels).usize()
+    if channels == 1 then
+      try
+        _data(offset)? = match color
+        | let v: U8 => v
+        | (let r: U8, let g: U8, let b: U8) => (r + g + b) / 3
+        end
+        true
+      else
+        false
+      end
+    elseif channels == 2 then
+      try
+        _data(offset)? = match color
+        | let v: U8 => v
+        | (let r: U8, let g: U8, let b: U8) => (r + g + b) / 3
+        end
+        _data(offset + 1)? = a
+        true
+      else
+        false
+      end
+    elseif (channels == 3) or (channels == 4) then
+      let color' = match color
+      | let v: U8 => (v, v, v)
+      | (let r: U8, let g: U8, let b: U8) => (r, g, b)
+      end
+
+      if channels == 3 then
+        try
+          _data(offset)? = color'._1
+          _data(offset + 1)? = color'._2
+          _data(offset + 2)? = color'._3
+          true
+        else
+          false
+        end
+      else
+        try
+          _data(offset)? = color'._1
+          _data(offset + 1)? = color'._2
+          _data(offset + 2)? = color'._3
+          _data(offset + 3)? = a
+          true
+        else
+          false
+        end
+      end
+    else
+      false
+    end
+
+  fun write(uri: String val)? =>
+    if uri.trim(uri.size() - 4) == ".png" then
+      @pony_img_write_png(uri.cstring(), _raw, 8)
+    else
+      // idk that filetype :3
+      error
+    end
 
   fun _final() =>
     @pony_img_destroy_image(_raw)

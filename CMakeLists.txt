@@ -7,11 +7,15 @@ project(pony_img_c
 
 set(HEADER_FILES
   src/flatten_read.h
+  src/flatten_write.h
   src/stb_image.h
+  src/stb_image_write.h
+  src/pony_image.h
 )
 
 set(SOURCE_FILES
   src/flatten_read.c
+  src/flatten_write.c
 )
 
 add_library(pony_img_c

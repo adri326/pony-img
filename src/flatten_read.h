@@ -2,22 +2,14 @@
 I call these files "flatteners", as I use them to access complex data structures with "flat" functions, which I can use back in pony.
 */
 
-#ifndef PONY_IMG_FLATTEN_H
-#define PONY_IMG_FLATTEN_H
+#ifndef PONY_IMG_FLATTEN_READ_H
+#define PONY_IMG_FLATTEN_READ_H
 
 #include <stdlib.h>
 #include <inttypes.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
-
-struct PonyImage {
-  uint32_t width;
-  uint32_t height;
-  uint32_t channels;
-  uint8_t* data;
-};
-
-typedef struct PonyImage PonyImage;
+#include "pony_image.h"
 
 //! Returns stb's error message
 const char* pony_img_get_error();
@@ -54,4 +46,4 @@ uint32_t pony_img_get_rgba(PonyImage* img, const uint32_t x, const uint32_t y);
 
 
 #endif
-// PONY_IMG_FLATTEN_H
+// PONY_IMG_FLATTEN_READ_H
