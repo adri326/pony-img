@@ -1,4 +1,4 @@
-#include "flatten.h"
+#include "flatten_read.h"
 
 const char* pony_img_get_error() {
   return stbi_failure_reason();

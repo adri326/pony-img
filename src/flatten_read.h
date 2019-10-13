@@ -1,3 +1,7 @@
+/*!
+I call these files "flatteners", as I use them to access complex data structures with "flat" functions, which I can use back in pony.
+*/
+
 #ifndef PONY_IMG_FLATTEN_H
 #define PONY_IMG_FLATTEN_H
 

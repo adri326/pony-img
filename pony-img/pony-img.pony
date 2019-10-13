@@ -23,11 +23,13 @@ primitive ImageError
     Gives you the error that stb_image is having, ifever it has one.
   """
   fun apply(): (String val | None) =>
-    let str = @pony_img_get_error()
-    if str.is_null() then
-      None
-    else
-      recover val String.from_cstring(str) end
+    recover val
+      let str = @pony_img_get_error()
+      if str.is_null() then
+        None
+      else
+        String.from_cstring(str)
+      end
     end
 
 class Image
