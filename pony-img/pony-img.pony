@@ -1,5 +1,7 @@
 use "lib:pony_img_c"
 
+use @pony_img_get_error[Pointer[U8 val] ref]()
+
 use @pony_img_load_image[PonyImageRaw](uri: Pointer[U8 val] tag, required_channels: U32)
 use @pony_img_destroy_image[None](img: PonyImageRaw)
 use @pony_img_get_data[Pointer[U8]](img: PonyImageRaw)
@@ -16,13 +18,29 @@ use @pony_img_get_rgba[U32](img: PonyImageRaw, x: U32, y: U32)
 primitive _PonyImageRaw
 type PonyImageRaw is Pointer[_PonyImageRaw ref] val
 
+primitive ImageError
+  """
+    Gives you the error that stb_image is having, ifever it has one.
+  """
+  fun apply(): (String val | None) =>
+    let str = @pony_img_get_error()
+    if str.is_null() then
+      None
+    else
+      recover val String.from_cstring(str) end
+    end
+
 class Image
   """
-  The Image class, which is the bulk of this project. It allows for communication with C in order to read and write data from/to an image.
+    The Image class, which is the bulk of this project. It allows for communication with stb_image in order to read and write data from/to an image.
 
-  You can load an Image from a file by doing `Image.load(<uri>, [required_channels])`.
+    You can load an Image from a file by doing `Image.load(<uri>, [required_channels])`.
 
-  This class will mirror the data within the image in an array, though modifying it will modify the C data array.
+    This class will mirror the data within the image in an array, though modifying it will modify the C data array.
+
+    **Note:** As per my recommendation on bringing performance and safety back together when working with numbers, some of the functions (namely `get_pixel_...`) will return a tupple, whose last element is a `Bool`.
+    This element's purpose is to let you know whether or not the function failed, without raising any slow-to-handle error or using boxed numbers.
+    It is of your responsibility to use it wisely. The error value of the other terms of these tuples will always be 0.
   """
   let _raw: PonyImageRaw
   let _data: Array[U8] ref

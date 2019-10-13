@@ -15,6 +15,9 @@ struct PonyImage {
 
 typedef struct PonyImage PonyImage;
 
+//! Returns stb's error message
+const char* pony_img_get_error();
+
 //! Loads an image and returns it as a PonyImage
 PonyImage* pony_img_load_image(const char* uri, const uint32_t required_channels);
 

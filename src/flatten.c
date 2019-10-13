@@ -1,5 +1,9 @@
 #include "flatten.h"
 
+const char* pony_img_get_error() {
+  return stbi_failure_reason();
+}
+
 PonyImage* pony_img_load_image(const char* uri, const uint32_t required_channels) {
   PonyImage* img = malloc(sizeof(PonyImage));
   img->data = stbi_load(uri, &img->width, &img->height, &img->channels, required_channels);
@@ -18,7 +22,7 @@ void pony_img_destroy_image(PonyImage* img) {
 }
 
 uint8_t pony_img_read(PonyImage* img, const uint32_t x, const uint32_t y, const uint32_t channel) {
-  return img->data[(x + y * img->width) * img->channels + channel]; // will do later
+  return img->data[(x + y * img->width) * img->channels + channel];
 }
 
 uint8_t* pony_img_get_data(PonyImage* img) {
