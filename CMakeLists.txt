@@ -16,6 +16,7 @@ set(HEADER_FILES
 set(SOURCE_FILES
   src/flatten_read.c
   src/flatten_write.c
+  src/pony_image.c
 )
 
 add_library(pony_img_c
