@@ -17,6 +17,8 @@ use @pony_img_get_rgb[U32](img: PonyImageRaw, x: U32, y: U32)
 use @pony_img_get_rgba[U32](img: PonyImageRaw, x: U32, y: U32)
 
 use @pony_img_write_png[Bool](uri: Pointer[U8 val] tag, img: PonyImageRaw, compression: U8)
+use @pony_img_write_bmp[Bool](uri: Pointer[U8 val] tag, img: PonyImageRaw)
+use @pony_img_write_tga[Bool](uri: Pointer[U8 val] tag, img: PonyImageRaw)
 
 primitive _PonyImageRaw
 type PonyImageRaw is Pointer[_PonyImageRaw ref] val
@@ -304,8 +306,13 @@ class Image
     """
       Write an Image to a file
     """
-    if uri.trim(uri.size() - 4) == ".png" then
+    let extension = uri.lower().trim(uri.size() - 4)
+    if extension == ".png" then
       @pony_img_write_png(uri.cstring(), _raw, 8)
+    elseif extension == ".bmp" then
+      @pony_img_write_bmp(uri.cstring(), _raw)
+    elseif extension == ".tga" then
+      @pony_img_write_tga(uri.cstring(), _raw)
     else
       // idk that filetype :3
       error
