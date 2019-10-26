@@ -29,3 +29,14 @@ PonyImage* pony_img_new(const uint32_t width, const uint32_t height, const uint3
 
   return res;
 }
+
+PonyImage* pony_img_copy(PonyImage* source) {
+  PonyImage* res = (PonyImage*)malloc(sizeof(PonyImage));
+  res->width = source->width;
+  res->height = source->height;
+  res->channels = source->channels;
+  res->data = (uint8_t*)malloc(source->width * source->height * source->channels);
+  memcpy((void*)res->data, (void*)source->data, source->width * source->height * source->channels);
+
+  return res;
+}

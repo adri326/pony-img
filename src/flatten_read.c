@@ -17,8 +17,10 @@ PonyImage* pony_img_load_image(const char* uri, const uint32_t required_channels
 }
 
 void pony_img_destroy_image(PonyImage* img) {
-  stbi_image_free(img->data);
-  free(img);
+  if (img != NULL) {
+    if (img->data != NULL) stbi_image_free(img->data);
+    free(img);
+  }
 }
 
 uint8_t pony_img_read(PonyImage* img, const uint32_t x, const uint32_t y, const uint32_t channel) {
@@ -55,7 +57,8 @@ uint32_t pony_img_get_rgb(PonyImage* img, const uint32_t x, const uint32_t y) {
     uint8_t c = img->data[(x + y * img->width) << 1];
     return c | (c << 8) | (c << 16);
   } else if (img->channels == 3) {
-    return 0x00ffffff & *((uint32_t*)img->data + (x + y * img->width) * 3);
+    size_t offset = (x + y * img->width) * 3;
+    return img->data[offset] | img->data[offset + 1] << 8 | img->data[offset + 2] << 16;
   } else if (img->channels == 4) {
     return 0x00ffffff & ((uint32_t*)img->data)[x + y * img->width];
   } else return 0;

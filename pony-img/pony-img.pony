@@ -6,6 +6,7 @@ use @pony_img_new[PonyImageRaw](width: U32, height: U32, channels: U32, r: U8, g
 use @pony_img_load_image[PonyImageRaw](uri: Pointer[U8 val] tag, required_channels: U32)
 use @pony_img_destroy_image[None](img: PonyImageRaw)
 use @pony_img_get_data[Pointer[U8]](img: PonyImageRaw)
+use @pony_img_copy[PonyImageRaw](img: PonyImageRaw)
 
 use @pony_img_get_size[USize](img: PonyImageRaw)
 use @pony_img_get_width[U32](img: PonyImageRaw)
@@ -56,7 +57,7 @@ class Image
   let height: U32
   let channels: U32
 
-  new create(width': U32, height': U32, channels': U32 = 3, color: (U8 | (U8, U8, U8)) = 0, alpha: U8 = 255) =>
+  new iso create(width': U32, height': U32, channels': U32 = 3, color: (U8 | (U8, U8, U8)) = 0, alpha: U8 = 255) =>
     width = width'
     height = height'
     channels = channels'
@@ -69,7 +70,7 @@ class Image
     _raw = @pony_img_new(width, height, channels, color'._1, color'._2, color'._3, alpha)
     _data = Array[U8].from_cpointer(@pony_img_get_data(_raw), @pony_img_get_size(_raw))
 
-  new load(uri: String val, required_channels: U32 = 0)? =>
+  new iso load(uri: String val, required_channels: U32 = 0)? =>
     """
     Load an image from a file
     """
@@ -84,6 +85,21 @@ class Image
     channels = @pony_img_get_channels(_raw)
 
     _data = Array[U8].from_cpointer(@pony_img_get_data(_raw), @pony_img_get_size(_raw))
+
+  new iso _from_data(raw: PonyImageRaw, data: Array[U8] iso, width': U32, height': U32, channels': U32) =>
+    _raw = raw
+    _data = consume data
+    width = width'
+    height = height'
+    channels = channels'
+
+  fun box copy(): Image iso^ =>
+    let raw = @pony_img_copy(_raw)
+    let data: Array[U8] iso = recover iso Array[U8].from_cpointer(@pony_img_get_data(_raw), @pony_img_get_size(_raw)) end
+    let width' = @pony_img_get_width(_raw)
+    let height' = @pony_img_get_height(_raw)
+    let channels' = @pony_img_get_channels(_raw)
+    Image._from_data(consume raw, consume data, width', height', channels')
 
   fun get_pixel(x: U32, y: U32, channel: U32 = 0): (U8, Bool) =>
     """
@@ -298,6 +314,21 @@ class Image
       else
         false
       end
+    else
+      false
+    end
+
+  fun ref over_pixel(x: U32, y: U32, color: (U8, U8, U8), ratio: F32 = 1): Bool =>
+    let old = get_pixel_rgba(x, y)
+    if old._5 then
+      let beta = (old._4.f32() / 255) * (1 - ratio)
+      let alpha = ratio + beta
+
+      let new_r = (old._1.f32() * beta) + (color._1.f32() * alpha)
+      let new_g = (old._2.f32() * beta) + (color._2.f32() * alpha)
+      let new_b = (old._3.f32() * beta) + (color._3.f32() * alpha)
+
+      set_pixel(x, y, (new_r.u8(), new_g.u8(), new_b.u8()), (alpha * 255).u8())
     else
       false
     end

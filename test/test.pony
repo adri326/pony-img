@@ -9,7 +9,7 @@ actor Main
   new create(env': Env) =>
     env = env'
     try
-      let img = Image.load("../test/img.png")?
+      let img = recover ref Image.load("../test/img.png")? end
       img_info(img)
       modify_img(img)
     else
